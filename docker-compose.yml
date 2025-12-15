@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskapp-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskapp
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskapp-api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/taskapp?schema=public
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
