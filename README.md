@@ -2,6 +2,8 @@
 
 A beautiful, full-stack task management mobile application built with React Native and NestJS, featuring a stunning glassmorphism UI design.
 
+You can try to download zip for android phones! (https://expo.dev/accounts/ruthvikbandari/projects/mobile/builds/c615286f-57be-4b7e-aeba-8cbab01ab78e)
+
 ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
