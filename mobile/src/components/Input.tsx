@@ -1,136 +1,62 @@
-import React, { useState } from 'react';
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  TextInputProps,
-  ViewStyle,
-  TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, borderRadius } from '../theme/tokens';
+import React from 'react';
+import { TextInput, View, Text, StyleSheet } from 'react-native';
 
-interface InputProps extends TextInputProps {
-  label?: string;
-  error?: string;
-  containerStyle?: ViewStyle;
-  leftIcon?: keyof typeof Ionicons.glyphMap;
-  rightIcon?: keyof typeof Ionicons.glyphMap;
-  onRightIconPress?: () => void;
+interface InputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  multiline?: boolean;
+  numberOfLines?: number;
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
-  error,
-  containerStyle,
-  leftIcon,
-  rightIcon,
-  onRightIconPress,
+  value,
+  onChangeText,
+  placeholder,
   secureTextEntry,
-  ...props
+  multiline,
+  numberOfLines,
 }) => {
-  const [isFocused, setIsFocused] = useState(false);
-  const [isSecure, setIsSecure] = useState(secureTextEntry);
-
-  const handleToggleSecure = () => {
-    setIsSecure(!isSecure);
-  };
-
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
-      <View
-        style={[
-          styles.inputContainer,
-          isFocused && styles.inputFocused,
-          error && styles.inputError,
-        ]}
-      >
-        {leftIcon && (
-          <Ionicons
-            name={leftIcon}
-            size={20}
-            color={colors.neutral[400]}
-            style={styles.leftIcon}
-          />
-        )}
-        <TextInput
-          style={[styles.input, leftIcon && styles.inputWithLeftIcon]}
-          placeholderTextColor={colors.neutral[400]}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          secureTextEntry={isSecure}
-          {...props}
-        />
-        {secureTextEntry && (
-          <TouchableOpacity onPress={handleToggleSecure} style={styles.rightIcon}>
-            <Ionicons
-              name={isSecure ? 'eye-outline' : 'eye-off-outline'}
-              size={20}
-              color={colors.neutral[400]}
-            />
-          </TouchableOpacity>
-        )}
-        {rightIcon && !secureTextEntry && (
-          <TouchableOpacity
-            onPress={onRightIconPress}
-            style={styles.rightIcon}
-            disabled={!onRightIconPress}
-          >
-            <Ionicons name={rightIcon} size={20} color={colors.neutral[400]} />
-          </TouchableOpacity>
-        )}
-      </View>
-      {error && <Text style={styles.error}>{error}</Text>}
+    <View style={styles.container}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, multiline && styles.multiline]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="rgba(255, 255, 255, 0.4)"
+        secureTextEntry={secureTextEntry}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing[4],
+    marginBottom: 16,
   },
   label: {
-    fontSize: typography.fontSizes.sm,
-    fontWeight: typography.fontWeights.medium,
-    color: colors.neutral[700],
-    marginBottom: spacing[2],
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.neutral[50],
-    borderWidth: 1,
-    borderColor: colors.neutral[200],
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing[3],
-  },
-  inputFocused: {
-    borderColor: colors.primary[500],
-    backgroundColor: colors.neutral[0],
-  },
-  inputError: {
-    borderColor: colors.error,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    marginBottom: 8,
   },
   input: {
-    flex: 1,
-    paddingVertical: spacing[3],
-    fontSize: typography.fontSizes.base,
-    color: colors.neutral[900],
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    color: '#FFFFFF',
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  inputWithLeftIcon: {
-    paddingLeft: spacing[2],
-  },
-  leftIcon: {
-    marginRight: spacing[1],
-  },
-  rightIcon: {
-    padding: spacing[1],
-  },
-  error: {
-    fontSize: typography.fontSizes.sm,
-    color: colors.error,
-    marginTop: spacing[1],
+  multiline: {
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
 });

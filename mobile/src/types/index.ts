@@ -1,12 +1,6 @@
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-}
-
 export interface Task {
   id: string;
   title: string;
@@ -20,15 +14,14 @@ export interface Task {
   userId: string;
 }
 
-export interface CreateTaskInput {
+export interface CreateTaskDto {
   title: string;
   description?: string;
   dueDate?: string;
   priority?: Priority;
-  status?: TaskStatus;
 }
 
-export interface UpdateTaskInput {
+export interface UpdateTaskDto {
   title?: string;
   description?: string;
   dueDate?: string;
@@ -37,26 +30,8 @@ export interface UpdateTaskInput {
   completed?: boolean;
 }
 
-export interface AuthResponse {
-  user: User;
-  accessToken: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
-
-export interface TaskStats {
-  total: number;
-  completed: number;
-  pending: number;
-  overdue: number;
-  byPriority: Record<Priority, number>;
-  byStatus: Record<TaskStatus, number>;
+export interface User {
+  id: string;
+  email: string;
+  name: string;
 }

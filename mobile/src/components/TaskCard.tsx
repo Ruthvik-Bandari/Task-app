@@ -1,118 +1,43 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Task } from '../types';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { GlassCard } from './GlassCard';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  priorityColors,
-} from '../theme/tokens';
+import { Task } from '../types';
 
 interface TaskCardProps {
   task: Task;
   onPress: () => void;
-  onToggleComplete: () => void;
+  onToggle: () => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({
-  task,
-  onPress,
-  onToggleComplete,
-}) => {
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+const priorityColors = {
+  LOW: '#10B981',
+  MEDIUM: '#F59E0B',
+  HIGH: '#EF4444',
+};
 
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.completed;
-
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onPress, onToggle }) => {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <GlassCard preset="light" style={styles.container}>
-        <View style={styles.content}>
-          <Pressable
-            onPress={onToggleComplete}
-            style={styles.checkbox}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <View
-              style={[
-                styles.checkboxInner,
-                task.completed && styles.checkboxChecked,
-              ]}
-            >
-              {task.completed && (
-                <Ionicons name="checkmark" size={14} color={colors.neutral[0]} />
-              )}
-            </View>
-          </Pressable>
-
-          <View style={styles.textContainer}>
-            <Text
-              style={[styles.title, task.completed && styles.completedText]}
-              numberOfLines={1}
-            >
+    <TouchableOpacity onPress={onPress}>
+      <GlassCard style={styles.card}>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={onToggle} style={styles.checkbox}>
+            <View style={[styles.checkboxInner, task.completed && styles.checked]} />
+          </TouchableOpacity>
+          <View style={styles.content}>
+            <Text style={[styles.title, task.completed && styles.completedText]}>
               {task.title}
             </Text>
-            
             {task.description && (
               <Text style={styles.description} numberOfLines={2}>
                 {task.description}
               </Text>
             )}
-
-            <View style={styles.metaRow}>
-              {task.dueDate && (
-                <View style={[styles.badge, isOverdue && styles.overdueBadge]}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={12}
-                    color={isOverdue ? colors.error : colors.neutral[500]}
-                  />
-                  <Text
-                    style={[styles.badgeText, isOverdue && styles.overdueText]}
-                  >
-                    {formatDate(task.dueDate)}
-                  </Text>
-                </View>
-              )}
-
-              <View
-                style={[
-                  styles.priorityBadge,
-                  { backgroundColor: `${priorityColors[task.priority]}20` },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.priorityDot,
-                    { backgroundColor: priorityColors[task.priority] },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.priorityText,
-                    { color: priorityColors[task.priority] },
-                  ]}
-                >
-                  {task.priority}
-                </Text>
+            <View style={styles.footer}>
+              <View style={[styles.priority, { backgroundColor: priorityColors[task.priority] }]}>
+                <Text style={styles.priorityText}>{task.priority}</Text>
               </View>
             </View>
           </View>
-
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={colors.neutral[400]}
-          />
         </View>
       </GlassCard>
     </TouchableOpacity>
@@ -120,87 +45,60 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing[3],
+  card: {
+    marginBottom: 12,
   },
-  content: {
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   checkbox: {
-    marginRight: spacing[3],
-  },
-  checkboxInner: {
     width: 24,
     height: 24,
-    borderRadius: borderRadius.md,
+    borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.neutral[300],
+    borderColor: 'rgba(255, 255, 255, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
-  checkboxChecked: {
-    backgroundColor: colors.primary[500],
-    borderColor: colors.primary[500],
+  checkboxInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
-  textContainer: {
+  checked: {
+    backgroundColor: '#8B5CF6',
+  },
+  content: {
     flex: 1,
   },
   title: {
-    fontSize: typography.fontSizes.base,
-    fontWeight: typography.fontWeights.semibold,
-    color: colors.neutral[900],
-    marginBottom: spacing[1],
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
   },
   completedText: {
     textDecorationLine: 'line-through',
-    color: colors.neutral[400],
+    opacity: 0.6,
   },
   description: {
-    fontSize: typography.fontSizes.sm,
-    color: colors.neutral[500],
-    marginBottom: spacing[2],
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    marginBottom: 8,
   },
-  metaRow: {
+  footer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
   },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    backgroundColor: colors.neutral[100],
-    borderRadius: borderRadius.sm,
-  },
-  overdueBadge: {
-    backgroundColor: `${colors.error}15`,
-  },
-  badgeText: {
-    fontSize: typography.fontSizes.xs,
-    color: colors.neutral[500],
-  },
-  overdueText: {
-    color: colors.error,
-  },
-  priorityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[1],
-    borderRadius: borderRadius.sm,
-  },
-  priorityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  priority: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   priorityText: {
-    fontSize: typography.fontSizes.xs,
-    fontWeight: typography.fontWeights.medium,
-    textTransform: 'capitalize',
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
   },
 });

@@ -10,55 +10,33 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../hooks/useAuth';
 import { Input, Button, GlassCard } from '../components';
-import { colors, spacing, typography } from '../theme/tokens';
 
 export const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const { register } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!name.trim()) {
-      newErrors.name = 'Name is required';
-    } else if (name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
-    }
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleRegister = async () => {
-    if (!validate()) return;
+    if (!name.trim() || !email.trim() || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
 
     setIsLoading(true);
     try {
+      console.log('Registering with:', email.trim(), password, name.trim());
       await register(email.trim(), password, name.trim());
+      console.log('Registration successful!');
     } catch (error: any) {
+      console.log('Registration error:', error);
+      console.log('Error response:', error.response?.data);
       Alert.alert(
         'Registration Failed',
-        error.response?.data?.message || 'Could not create account'
+        error.response?.data?.message || error.message || 'Something went wrong'
       );
     } finally {
       setIsLoading(false);
@@ -67,7 +45,7 @@ export const RegisterScreen = ({ navigation }: any) => {
 
   return (
     <LinearGradient
-      colors={[colors.primary[600], colors.primary[800]]}
+      colors={['#1a1a2e', '#16213e']}
       style={styles.container}
     >
       <KeyboardAvoidingView
@@ -79,21 +57,18 @@ export const RegisterScreen = ({ navigation }: any) => {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="checkbox" size={48} color={colors.neutral[0]} />
-            </View>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Start your productivity journey</Text>
+            <Text style={styles.title}>TaskApp</Text>
+            <Text style={styles.subtitle}>Create your account</Text>
           </View>
 
-          <GlassCard preset="frosted" style={styles.card}>
+          <GlassCard style={styles.card}>
+            <Text style={styles.cardTitle}>Sign Up</Text>
+
             <Input
               label="Name"
               placeholder="Your name"
               value={name}
               onChangeText={setName}
-              error={errors.name}
-              leftIcon="person-outline"
             />
 
             <Input
@@ -101,52 +76,28 @@ export const RegisterScreen = ({ navigation }: any) => {
               placeholder="you@example.com"
               value={email}
               onChangeText={setEmail}
-              error={errors.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon="mail-outline"
             />
 
             <Input
               label="Password"
-              placeholder="Min 8 characters"
+              placeholder="Create a password"
               value={password}
               onChangeText={setPassword}
-              error={errors.password}
               secureTextEntry
-              leftIcon="lock-closed-outline"
-            />
-
-            <Input
-              label="Confirm Password"
-              placeholder="Repeat password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              error={errors.confirmPassword}
-              secureTextEntry
-              leftIcon="lock-closed-outline"
             />
 
             <Button
               title="Create Account"
               onPress={handleRegister}
               loading={isLoading}
-              style={styles.button}
             />
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
 
             <TouchableOpacity
               style={styles.loginLink}
-              onPress={() => navigation.goBack()}
+              onPress={() => navigation.navigate('Login')}
             >
               <Text style={styles.loginText}>
-                Already have an account?{' '}
-                <Text style={styles.loginTextBold}>Sign in</Text>
+                Already have an account? <Text style={styles.loginTextBold}>Sign in</Text>
               </Text>
             </TouchableOpacity>
           </GlassCard>
@@ -166,61 +117,42 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: spacing[4],
+    padding: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: spacing[6],
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing[4],
+    marginBottom: 40,
   },
   title: {
-    fontSize: typography.fontSizes['3xl'],
-    fontWeight: typography.fontWeights.bold,
-    color: colors.neutral[0],
-    marginBottom: spacing[1],
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: typography.fontSizes.base,
-    color: 'rgba(255,255,255,0.8)',
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.7)',
   },
   card: {
-    padding: spacing[6],
+    padding: 24,
   },
-  button: {
-    marginTop: spacing[2],
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing[4],
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.neutral[200],
-  },
-  dividerText: {
-    paddingHorizontal: spacing[3],
-    color: colors.neutral[400],
-    fontSize: typography.fontSizes.sm,
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 24,
+    textAlign: 'center',
   },
   loginLink: {
     alignItems: 'center',
+    marginTop: 20,
   },
   loginText: {
-    fontSize: typography.fontSizes.base,
-    color: colors.neutral[600],
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
   },
   loginTextBold: {
-    color: colors.primary[600],
-    fontWeight: typography.fontWeights.semibold,
+    color: '#8B5CF6',
+    fontWeight: '600',
   },
 });

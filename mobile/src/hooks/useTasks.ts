@@ -1,82 +1,86 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import { CreateTaskInput, UpdateTaskInput } from '../types';
 
-export const useTasks = (params?: {
-  page?: number;
-  limit?: number;
-  status?: string;
-  priority?: string;
-  search?: string;
-}) => {
+export const useTasks = () => {
   return useQuery({
-    queryKey: ['tasks', params],
-    queryFn: () => api.getTasks(params),
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const response = await api.get('/tasks');
+      return response.data;
+    },
   });
 };
 
 export const useTask = (id: string) => {
   return useQuery({
-    queryKey: ['task', id],
-    queryFn: () => api.getTask(id),
-    enabled: !!id,
-  });
-};
-
-export const useTaskStats = () => {
-  return useQuery({
-    queryKey: ['taskStats'],
-    queryFn: () => api.getTaskStats(),
+    queryKey: ['tasks', id],
+    queryFn: async () => {
+      const response = await api.get(`/tasks/${id}`);
+      return response.data;
+    },
   });
 };
 
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (input: CreateTaskInput) => api.createTask(input),
+    mutationFn: async (data: any) => {
+      const response = await api.post('/tasks', data);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['taskStats'] });
     },
   });
 };
 
 export const useUpdateTask = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateTaskInput }) =>
-      api.updateTask(id, input),
-    onSuccess: (data) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await api.patch(`/tasks/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['task', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['taskStats'] });
     },
   });
 };
 
-export const useDeleteTask = () => {
+export const useToggleTask = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (id: string) => api.deleteTask(id),
+    mutationFn: async (id: string) => {
+      const response = await api.patch(`/tasks/${id}/toggle`);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['taskStats'] });
     },
   });
 };
 
 export const useToggleTaskComplete = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (id: string) => api.toggleTaskComplete(id),
-    onSuccess: (data) => {
+    mutationFn: async (id: string) => {
+      const response = await api.patch(`/tasks/${id}/toggle`);
+      return response.data;
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['task', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['taskStats'] });
+    },
+  });
+};
+
+export const useDeleteTask = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/tasks/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 };

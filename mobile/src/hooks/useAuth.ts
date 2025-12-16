@@ -1,51 +1,65 @@
 import { create } from 'zustand';
-import { User } from '../types';
+import * as SecureStore from 'expo-secure-store';
 import { api } from '../api/client';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
 
 interface AuthState {
   user: User | null;
+  token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  loadToken: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  token: null,
   isLoading: true,
   isAuthenticated: false,
 
-  login: async (email: string, password: string) => {
+  loadToken: async () => {
     try {
-      const response = await api.login(email, password);
-      set({ user: response.user, isAuthenticated: true });
+      const token = await SecureStore.getItemAsync('token');
+      if (token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const response = await api.get('/auth/me');
+        set({ token, user: response.data, isLoading: false, isAuthenticated: true });
+      } else {
+        set({ isLoading: false, isAuthenticated: false });
+      }
     } catch (error) {
-      throw error;
+      await SecureStore.deleteItemAsync('token');
+      set({ token: null, user: null, isLoading: false, isAuthenticated: false });
     }
+  },
+
+  login: async (email: string, password: string) => {
+    const response = await api.post('/auth/login', { email, password });
+    const { accessToken, user } = response.data;
+    await SecureStore.setItemAsync('token', accessToken);
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    set({ token: accessToken, user, isAuthenticated: true });
   },
 
   register: async (email: string, password: string, name: string) => {
-    try {
-      const response = await api.register(email, password, name);
-      set({ user: response.user, isAuthenticated: true });
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/auth/register', { email, password, name });
+    const { accessToken, user } = response.data;
+    await SecureStore.setItemAsync('token', accessToken);
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    set({ token: accessToken, user, isAuthenticated: true });
   },
 
   logout: async () => {
-    await api.logout();
-    set({ user: null, isAuthenticated: false });
-  },
-
-  checkAuth: async () => {
-    try {
-      const user = await api.getMe();
-      set({ user, isAuthenticated: true, isLoading: false });
-    } catch {
-      set({ user: null, isAuthenticated: false, isLoading: false });
-    }
+    await SecureStore.deleteItemAsync('token');
+    delete api.defaults.headers.common['Authorization'];
+    set({ token: null, user: null, isAuthenticated: false });
   },
 }));

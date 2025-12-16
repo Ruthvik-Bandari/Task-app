@@ -15,10 +15,10 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { checkAuth } = useAuthStore();
+  const { loadToken } = useAuthStore();
 
   useEffect(() => {
-    checkAuth();
+    loadToken();
   }, []);
 
   return <RootNavigator />;
@@ -28,7 +28,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
         <AppContent />
       </SafeAreaProvider>
     </QueryClientProvider>
