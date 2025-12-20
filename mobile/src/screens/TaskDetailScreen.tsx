@@ -7,18 +7,17 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTask, useDeleteTask, useToggleTaskComplete } from '../hooks/useTasks';
-import { GlassCard, Button } from '../components';
-import {
-  colors,
-  spacing,
-  typography,
-  borderRadius,
-  priorityColors,
-  statusColors,
-} from '../theme/tokens';
+import { Button } from '../components';
+
+const priorityColors = {
+  LOW: '#10B981',
+  MEDIUM: '#F59E0B',
+  HIGH: '#EF4444',
+};
 
 export const TaskDetailScreen = ({ route, navigation }: any) => {
   const { taskId } = route.params;
@@ -28,9 +27,9 @@ export const TaskDetailScreen = ({ route, navigation }: any) => {
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
+      weekday: 'short',
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   };
@@ -38,7 +37,7 @@ export const TaskDetailScreen = ({ route, navigation }: any) => {
   const handleDelete = () => {
     Alert.alert(
       'Delete Task',
-      'Are you sure you want to delete this task? This action cannot be undone.',
+      'Are you sure you want to delete this task?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -49,7 +48,7 @@ export const TaskDetailScreen = ({ route, navigation }: any) => {
               await deleteTask.mutateAsync(taskId);
               navigation.goBack();
             } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to delete task');
+              Alert.alert('Error', 'Failed to delete task');
             }
           },
         },
@@ -61,310 +60,197 @@ export const TaskDetailScreen = ({ route, navigation }: any) => {
     try {
       await toggleComplete.mutateAsync(taskId);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update task');
+      Alert.alert('Error', 'Failed to update task');
     }
   };
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary[500]} />
-      </View>
+      <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.loading}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </LinearGradient>
     );
   }
 
   if (!task) {
     return (
-      <View style={styles.errorContainer}>
+      <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.loading}>
         <Text style={styles.errorText}>Task not found</Text>
         <Button title="Go Back" onPress={() => navigation.goBack()} />
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Ionicons name="arrow-back" size={24} color={colors.neutral[900]} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Task Details</Text>
-        <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-          <Ionicons name="trash-outline" size={22} color={colors.error} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.titleSection}>
-          <TouchableOpacity
-            style={[
-              styles.checkbox,
-              task.completed && styles.checkboxChecked,
-            ]}
-            onPress={handleToggleComplete}
-          >
-            {task.completed && (
-              <Ionicons name="checkmark" size={18} color={colors.neutral[0]} />
-            )}
+    <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>← Back</Text>
           </TouchableOpacity>
-          <Text
-            style={[styles.title, task.completed && styles.completedTitle]}
-          >
-            {task.title}
-          </Text>
+          <TouchableOpacity onPress={handleDelete}>
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.badgesRow}>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: `${priorityColors[task.priority]}20` },
-            ]}
-          >
-            <View
-              style={[
-                styles.badgeDot,
-                { backgroundColor: priorityColors[task.priority] },
-              ]}
-            />
-            <Text
-              style={[styles.badgeText, { color: priorityColors[task.priority] }]}
+        <ScrollView style={styles.content}>
+          <View style={styles.titleSection}>
+            <TouchableOpacity
+              style={[styles.checkbox, task.completed && styles.checkboxChecked]}
+              onPress={handleToggleComplete}
             >
-              {task.priority} Priority
+              {task.completed && <Text style={styles.checkmark}>✓</Text>}
+            </TouchableOpacity>
+            <Text style={[styles.title, task.completed && styles.completedTitle]}>
+              {task.title}
             </Text>
           </View>
 
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: `${statusColors[task.status]}20` },
-            ]}
-          >
-            <Text
-              style={[styles.badgeText, { color: statusColors[task.status] }]}
-            >
-              {task.status.replace('_', ' ')}
-            </Text>
+          <View style={styles.badgesRow}>
+            <View style={[styles.badge, { backgroundColor: priorityColors[task.priority] + '30' }]}>
+              <View style={[styles.badgeDot, { backgroundColor: priorityColors[task.priority] }]} />
+              <Text style={[styles.badgeText, { color: priorityColors[task.priority] }]}>
+                {task.priority}
+              </Text>
+            </View>
           </View>
-        </View>
 
-        {task.description && (
-          <GlassCard preset="light" style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color={colors.neutral[500]}
-              />
+          {task.description && (
+            <View style={styles.section}>
               <Text style={styles.sectionTitle}>Description</Text>
+              <Text style={styles.description}>{task.description}</Text>
             </View>
-            <Text style={styles.description}>{task.description}</Text>
-          </GlassCard>
-        )}
+          )}
 
-        {task.dueDate && (
-          <GlassCard preset="light" style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons
-                name="calendar-outline"
-                size={18}
-                color={colors.neutral[500]}
-              />
-              <Text style={styles.sectionTitle}>Due Date</Text>
-            </View>
-            <Text style={styles.dateText}>{formatDate(task.dueDate)}</Text>
-          </GlassCard>
-        )}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Created</Text>
+            <Text style={styles.dateText}>{formatDate(task.createdAt)}</Text>
+          </View>
+        </ScrollView>
 
-        <GlassCard preset="light" style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons
-              name="time-outline"
-              size={18}
-              color={colors.neutral[500]}
-            />
-            <Text style={styles.sectionTitle}>Activity</Text>
-          </View>
-          <View style={styles.activityItem}>
-            <Text style={styles.activityLabel}>Created</Text>
-            <Text style={styles.activityValue}>{formatDate(task.createdAt)}</Text>
-          </View>
-          <View style={styles.activityItem}>
-            <Text style={styles.activityLabel}>Last Updated</Text>
-            <Text style={styles.activityValue}>{formatDate(task.updatedAt)}</Text>
-          </View>
-        </GlassCard>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <Button
-          title={task.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
-          onPress={handleToggleComplete}
-          variant={task.completed ? 'outline' : 'primary'}
-          loading={toggleComplete.isPending}
-        />
-      </View>
-    </View>
+        <View style={styles.footer}>
+          <Button
+            title={task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+            onPress={handleToggleComplete}
+            loading={toggleComplete.isPending}
+          />
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.neutral[50],
   },
-  loadingContainer: {
+  safeArea: {
+    flex: 1,
+  },
+  loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.neutral[0],
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing[4],
-    backgroundColor: colors.neutral[0],
   },
   errorText: {
-    fontSize: typography.fontSizes.lg,
-    color: colors.neutral[500],
-    marginBottom: spacing[4],
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 20,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[16],
-    paddingBottom: spacing[4],
-    backgroundColor: colors.neutral[0],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[100],
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
     alignItems: 'center',
+    padding: 16,
   },
-  headerTitle: {
-    fontSize: typography.fontSizes.lg,
-    fontWeight: typography.fontWeights.semibold,
-    color: colors.neutral[900],
+  backText: {
+    color: '#8B5CF6',
+    fontSize: 16,
   },
-  deleteButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+  deleteText: {
+    color: '#EF4444',
+    fontSize: 16,
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: spacing[4],
+    padding: 20,
   },
   titleSection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing[4],
+    marginBottom: 16,
   },
   checkbox: {
     width: 28,
     height: 28,
-    borderRadius: borderRadius.md,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: colors.neutral[300],
+    borderColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing[3],
-    marginTop: 2,
+    marginRight: 12,
   },
   checkboxChecked: {
-    backgroundColor: colors.primary[500],
-    borderColor: colors.primary[500],
+    backgroundColor: '#8B5CF6',
+    borderColor: '#8B5CF6',
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 16,
   },
   title: {
     flex: 1,
-    fontSize: typography.fontSizes['2xl'],
-    fontWeight: typography.fontWeights.bold,
-    color: colors.neutral[900],
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   completedTitle: {
     textDecorationLine: 'line-through',
-    color: colors.neutral[400],
+    opacity: 0.6,
   },
   badgesRow: {
     flexDirection: 'row',
-    gap: spacing[2],
-    marginBottom: spacing[4],
+    marginBottom: 24,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    borderRadius: borderRadius.full,
-    gap: spacing[2],
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   badgeDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    marginRight: 8,
   },
   badgeText: {
-    fontSize: typography.fontSizes.sm,
-    fontWeight: typography.fontWeights.medium,
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
-    marginBottom: spacing[3],
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[2],
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
   },
   sectionTitle: {
-    fontSize: typography.fontSizes.sm,
-    fontWeight: typography.fontWeights.semibold,
-    color: colors.neutral[600],
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    marginBottom: 8,
   },
   description: {
-    fontSize: typography.fontSizes.base,
-    color: colors.neutral[700],
+    fontSize: 16,
+    color: '#FFFFFF',
     lineHeight: 24,
   },
   dateText: {
-    fontSize: typography.fontSizes.base,
-    color: colors.neutral[700],
-  },
-  activityItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing[2],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral[100],
-  },
-  activityLabel: {
-    fontSize: typography.fontSizes.sm,
-    color: colors.neutral[500],
-  },
-  activityValue: {
-    fontSize: typography.fontSizes.sm,
-    color: colors.neutral[700],
-    fontWeight: typography.fontWeights.medium,
+    fontSize: 16,
+    color: '#FFFFFF',
   },
   footer: {
-    padding: spacing[4],
-    backgroundColor: colors.neutral[0],
-    borderTopWidth: 1,
-    borderTopColor: colors.neutral[100],
+    padding: 20,
   },
 });
